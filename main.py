@@ -1,5 +1,6 @@
 import uiautomator2 as u2
-from fastmcp import FastMCP, Image
+from fastmcp import FastMCP
+from fastmcp.utilities.types import Image
 import xml.etree.ElementTree as ET
 import json
 import io
@@ -19,51 +20,59 @@ def parse_bounds(bounds_str):
     except:
         return None
 
-def extract_ui_elements(element):
+def extract_ui_elements(element, seen_texts=None):
+    if seen_texts is None:
+        seen_texts = set()
+    
     elements = []
     
     resource_id = element.get('resource-id', '')
-    class_name = element.get('class', '')
-    package = element.get('package', '')
     
-    notification_indicators = [
-        'com.android.systemui:id/status_bar',
-        'com.android.systemui:id/notification',
-        'StatusBarIconView',
-        'com.android.systemui:id/clock',
-        'com.android.systemui:id/battery',
-        'com.android.systemui:id/signal_cluster',
-        'com.android.systemui:id/notification_stack_scroller'
-    ]
-    
-    is_notification_element = (
-        package == 'com.android.systemui' or
-        any(indicator in resource_id for indicator in notification_indicators) or
-        'StatusBar' in class_name or
-        'Notification' in class_name
-    )
-    
-    if is_notification_element:
-        for child in element:
-            elements.extend(extract_ui_elements(child))
+    if resource_id.startswith('com.android.systemui'):
         return elements
     
+    class_name = element.get('class', '')
     text = element.get('text', '').strip()
     content_desc = element.get('content-desc', '').strip()
     bounds = parse_bounds(element.get('bounds', ''))
     
-    if (text or content_desc) and bounds:
+    display_text = text or content_desc
+    if (display_text and bounds and display_text not in seen_texts) or (resource_id and bounds):
+        if display_text:
+            seen_texts.add(display_text)
+            
         element_info = {
-            "text": text or content_desc,
+            "text": display_text,
             "coordinates": {"x": bounds["x"], "y": bounds["y"]},
             "class": class_name
         }
+        if resource_id:
+            element_info["resource_id"] = resource_id
         elements.append(element_info)
     
     for child in element:
-        elements.extend(extract_ui_elements(child))
+        elements.extend(extract_ui_elements(child, seen_texts))
     
     return elements
+
+
+def mobile_dump_ui() -> str:
+    """Get UI elements from Android screen as JSON with text and coordinates.
+    
+    Returns a JSON array of UI elements with their text content and clickable coordinates.
+    """
+    try:
+        xml_content = device.dump_hierarchy()
+        with open("ui_dump.xml", "w", encoding="utf-8") as xml_file:
+            xml_file.write(xml_content)
+        root = ET.fromstring(xml_content)
+        
+        ui_elements = extract_ui_elements(root)
+        
+        return json.dumps(ui_elements, ensure_ascii=False, indent=2)
+        
+    except Exception as e:
+        return f"Error processing XML: {str(e)}"
 
 @mcp.tool()
 def mobile_dump_ui() -> str:
@@ -77,16 +86,7 @@ def mobile_dump_ui() -> str:
         
         ui_elements = extract_ui_elements(root)
         
-        filtered_elements = []
-        seen_texts = set()
-        
-        for element in ui_elements:
-            text = element['text']
-            if text and text not in seen_texts:
-                seen_texts.add(text)
-                filtered_elements.append(element)
-        
-        return json.dumps(filtered_elements, ensure_ascii=False, indent=2)
+        return json.dumps(ui_elements, ensure_ascii=False, indent=2)
         
     except Exception as e:
         return f"Error processing XML: {str(e)}"
@@ -217,5 +217,8 @@ def mobile_take_screenshot() -> dict:
             "data": f"Error taking screenshot: {str(e)}"
         }
 
-mcp.run()
+def main():
+    mcp.run()
 
+if __name__ == "__main__":
+    main()
