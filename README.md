@@ -7,15 +7,16 @@ Android Mobile MCP is a server implementation that bridges the Model Context Pro
 ## Available Tools
 
 ### UI Interaction
-- **`dump_screen_xml`** - Get UI elements from Android screen as JSON with text and coordinates
-- **`click_coordinate`** - Click on a specific coordinate on the Android screen
-- **`input_text`** - Input text into the currently focused text field
-- **`swipe_screen`** - Perform swipe gestures with customizable duration
-- **`take_screenshot`** - Capture screenshots of the current screen state
+- **`mobile_dump_ui`** - Get UI elements from Android screen as JSON with text and coordinates
+- **`mobile_click`** - Click on a specific coordinate on the Android screen
+- **`mobile_type`** - Input text into the currently focused text field with optional submit
+- **`mobile_key_press`** - Press physical or virtual buttons (BACK, HOME, ENTER, VOLUME_UP, etc.)
+- **`mobile_swipe`** - Perform swipe gestures with customizable duration
+- **`mobile_take_screenshot`** - Capture screenshots of the current screen state
 
 ### App Management
-- **`list_apps`** - List all installed applications with package names and labels
-- **`launch_app`** - Launch applications by package name
+- **`mobile_list_apps`** - List all installed applications with package names and labels
+- **`mobile_launch_app`** - Launch applications by package name
 
 ## Installation
 
