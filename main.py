@@ -1,9 +1,8 @@
 import uiautomator2 as u2
-from fastmcp import FastMCP
+from fastmcp import FastMCP, Image
 import xml.etree.ElementTree as ET
 import json
 import io
-from mcp.server.fastmcp import FastMCP, Image
 
 mcp = FastMCP("Android Mobile MCP Server")
 device = u2.connect()
@@ -67,7 +66,7 @@ def extract_ui_elements(element):
     return elements
 
 @mcp.tool()
-def dump_screen_xml() -> str:
+def mobile_dump_ui() -> str:
     """Get UI elements from Android screen as JSON with text and coordinates.
     
     Returns a JSON array of UI elements with their text content and clickable coordinates.
@@ -93,7 +92,7 @@ def dump_screen_xml() -> str:
         return f"Error processing XML: {str(e)}"
 
 @mcp.tool()
-def click_coordinate(x: int, y: int) -> str:
+def mobile_click(x: int, y: int) -> str:
     """Click on a specific coordinate on the Android screen.
     
     Args:
@@ -107,20 +106,50 @@ def click_coordinate(x: int, y: int) -> str:
         return f"Error clicking coordinate ({x}, {y}): {str(e)}"
 
 @mcp.tool()
-def input_text(text: str) -> str:
+def mobile_type(text: str, submit: bool = False) -> str:
     """Input text into the currently focused text field on Android.
     
     Args:
         text: The text to input
+        submit: Whether to submit text (press Enter key) after typing
     """
     try:
         device.send_keys(text)
+        if submit:
+            device.press("enter")
+            return f"Successfully input text: {text} and pressed Enter"
         return f"Successfully input text: {text}"
     except Exception as e:
         return f"Error inputting text: {str(e)}"
 
 @mcp.tool()
-def swipe_screen(start_x: int, start_y: int, end_x: int, end_y: int, duration: float = 0.5) -> str:
+def mobile_key_press(button: str) -> str:
+    """Press a physical or virtual button on the Android device.
+    
+    Args:
+        button: Button name (BACK, HOME, ENTER, VOLUME_UP, VOLUME_DOWN, MENU, RECENT, etc.)
+    """
+    button_map = {
+        "BACK": "back",
+        "HOME": "home", 
+        "RECENT": "recent",
+        "OVERVIEW": "recent",
+        "APP_SWITCH": "recent",
+        "VOLUME_UP": "volume_up",
+        "VOLUME_DOWN": "volume_down",
+        "ENTER": "enter"
+    }
+    
+    key = button_map.get(button.upper(), button.lower())
+    
+    try:
+        device.press(key)
+        return f"Successfully pressed {button} button"
+    except Exception as e:
+        return f"Error pressing {button} button: {str(e)}"
+
+@mcp.tool()
+def mobile_swipe(start_x: int, start_y: int, end_x: int, end_y: int, duration: float = 0.5) -> str:
     """Perform a swipe gesture on the Android screen.
     
     Args:
@@ -137,7 +166,7 @@ def swipe_screen(start_x: int, start_y: int, end_x: int, end_y: int, duration: f
         return f"Error swiping: {str(e)}"
 
 @mcp.tool()
-def list_apps() -> str:
+def mobile_list_apps() -> str:
     """List all installed applications on the Android device.
     
     Returns a JSON array with package names and application labels.
@@ -155,7 +184,7 @@ def list_apps() -> str:
         return f"Error listing apps: {str(e)}"
 
 @mcp.tool()
-def launch_app(package_name: str) -> str:
+def mobile_launch_app(package_name: str) -> str:
     """Launch an application by its package name.
     
     Args:
@@ -168,7 +197,7 @@ def launch_app(package_name: str) -> str:
         return f"Error launching app {package_name}: {str(e)}"
 
 @mcp.tool()
-def take_screenshot() -> dict:
+def mobile_take_screenshot() -> dict:
     """Take a screenshot of the current Android screen.
     
     Returns an image object that can be viewed by the LLM.
@@ -188,8 +217,5 @@ def take_screenshot() -> dict:
             "data": f"Error taking screenshot: {str(e)}"
         }
 
-def main():
-    mcp.run()
+mcp.run()
 
-if __name__ == "__main__":
-    main()

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='android-mobile-mcp',
-    version='2.0.3',
+    version='2.0.4',
     author='erichung0906',
     author_email='rthung96@gmail.com',
     description='Android Mobile MCP',
