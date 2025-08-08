@@ -197,7 +197,7 @@ def mobile_launch_app(package_name: str) -> str:
         return f"Error launching app {package_name}: {str(e)}"
 
 @mcp.tool()
-def mobile_take_screenshot() -> dict:
+def mobile_take_screenshot() -> Image:
     """Take a screenshot of the current Android screen.
     
     Returns an image object that can be viewed by the LLM.
@@ -209,13 +209,10 @@ def mobile_take_screenshot() -> dict:
         screenshot.save(buf, format="PNG")
         img_bytes = buf.getvalue()
         return Image(data=img_bytes, format="png")
-
         
     except Exception as e:
-        return {
-            "type": "text",
-            "data": f"Error taking screenshot: {str(e)}"
-        }
+        # For errors, we need to raise an exception rather than return a dict
+        raise Exception(f"Error taking screenshot: {str(e)}")
 
 def main():
     mcp.run()
