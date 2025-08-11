@@ -1,3 +1,4 @@
+from sympy import content
 import uiautomator2 as u2
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
@@ -20,27 +21,52 @@ def parse_bounds(bounds_str):
     except:
         return None
 
-def extract_ui_elements(element, seen_texts=None):
-    if seen_texts is None:
-        seen_texts = set()
+def get_children_texts(element):
+    child_texts = []
+    """Check if element has any focusable children"""
+    for child in list(element.iter())[1:]:
+        child_text = child.get('text', '').strip()
+        if child_text and child_text not in child_texts:
+            child_texts.append(child_text)
+
+    return child_texts
+
+def extract_ui_elements(element):
+    resource_id = element.get('resource-id', '')
+    if resource_id.startswith('com.android.systemui'):
+        return []
     
     elements = []
-    
-    resource_id = element.get('resource-id', '')
-    
-    if resource_id.startswith('com.android.systemui'):
-        return elements
-    
+
     class_name = element.get('class', '')
     text = element.get('text', '').strip()
     content_desc = element.get('content-desc', '').strip()
     bounds = parse_bounds(element.get('bounds', ''))
+    clickable = element.get('clickable', 'false').lower() == 'true'
+    focusable = element.get('focusable', 'false').lower() == 'true'
+    enabled = element.get('enabled', 'false').lower() == 'true'
     
-    display_text = text or content_desc
-    if (display_text and bounds and display_text not in seen_texts) or (resource_id and bounds):
-        if display_text:
-            seen_texts.add(display_text)
-            
+    focusable = (focusable or clickable) and enabled and bounds
+    
+    if focusable:
+        all_text = f"{text or content_desc}"
+        if not all_text:
+            child_texts = get_children_texts(element)
+            all_text = f"{' '.join(child_texts)}".strip()
+
+        element_info = {
+            "text": all_text,
+            "coordinates": {"x": bounds["x"], "y": bounds["y"]},
+            "class": class_name
+        }
+        if resource_id:
+            element_info["resource_id"] = resource_id
+
+        elements.append(element_info)
+
+    elif text or content_desc:
+        display_text = text or content_desc
+        
         element_info = {
             "text": display_text,
             "coordinates": {"x": bounds["x"], "y": bounds["y"]},
@@ -48,11 +74,11 @@ def extract_ui_elements(element, seen_texts=None):
         }
         if resource_id:
             element_info["resource_id"] = resource_id
+
         elements.append(element_info)
-    
+
     for child in element:
-        elements.extend(extract_ui_elements(child, seen_texts))
-    
+        elements.extend(extract_ui_elements(child))
     return elements
 
 
@@ -64,14 +90,18 @@ def mobile_dump_ui() -> str:
     """
     try:
         xml_content = device.dump_hierarchy()
-        with open("ui_dump.xml", "w", encoding="utf-8") as xml_file:
-            xml_file.write(xml_content)
         root = ET.fromstring(xml_content)
         
         ui_elements = extract_ui_elements(root)
-        
+        unique = {}
+        for el in ui_elements:
+            key = (el["text"], tuple(el["coordinates"].items()))
+            if key not in unique:
+                unique[key] = el
+        ui_elements = list(unique.values())
+
         return json.dumps(ui_elements, ensure_ascii=False, indent=2)
-        
+
     except Exception as e:
         return f"Error processing XML: {str(e)}"
 
