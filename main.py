@@ -56,6 +56,7 @@ def extract_ui_elements(element, seen_texts=None):
     return elements
 
 
+@mcp.tool()
 def mobile_dump_ui() -> str:
     """Get UI elements from Android screen as JSON with text and coordinates.
     
@@ -65,23 +66,6 @@ def mobile_dump_ui() -> str:
         xml_content = device.dump_hierarchy()
         with open("ui_dump.xml", "w", encoding="utf-8") as xml_file:
             xml_file.write(xml_content)
-        root = ET.fromstring(xml_content)
-        
-        ui_elements = extract_ui_elements(root)
-        
-        return json.dumps(ui_elements, ensure_ascii=False, indent=2)
-        
-    except Exception as e:
-        return f"Error processing XML: {str(e)}"
-
-@mcp.tool()
-def mobile_dump_ui() -> str:
-    """Get UI elements from Android screen as JSON with text and coordinates.
-    
-    Returns a JSON array of UI elements with their text content and clickable coordinates.
-    """
-    try:
-        xml_content = device.dump_hierarchy()
         root = ET.fromstring(xml_content)
         
         ui_elements = extract_ui_elements(root)
@@ -211,8 +195,7 @@ def mobile_take_screenshot() -> Image:
         return Image(data=img_bytes, format="png")
         
     except Exception as e:
-        # For errors, we need to raise an exception rather than return a dict
-        raise Exception(f"Error taking screenshot: {str(e)}")
+        return f"Error taking screenshot: {str(e)}"
 
 def main():
     mcp.run()
