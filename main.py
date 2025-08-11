@@ -1,4 +1,3 @@
-from sympy import content
 import uiautomator2 as u2
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
