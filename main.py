@@ -140,16 +140,12 @@ def mobile_key_press(button: str) -> str:
     """Press a physical or virtual button on the Android device.
     
     Args:
-        button: Button name (BACK, HOME, ENTER, VOLUME_UP, VOLUME_DOWN, MENU, RECENT, etc.)
+        button: Button name (BACK, HOME, RECENT, ENTER)
     """
     button_map = {
         "BACK": "back",
-        "HOME": "home", 
+        "HOME": "home",
         "RECENT": "recent",
-        "OVERVIEW": "recent",
-        "APP_SWITCH": "recent",
-        "VOLUME_UP": "volume_up",
-        "VOLUME_DOWN": "volume_down",
         "ENTER": "enter"
     }
     
