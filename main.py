@@ -40,6 +40,7 @@ def extract_ui_elements(element):
     class_name = element.get('class', '')
     text = element.get('text', '').strip()
     content_desc = element.get('content-desc', '').strip()
+    hint = element.get('hint', '').strip()
     bounds = parse_bounds(element.get('bounds', ''))
     clickable = element.get('clickable', 'false').lower() == 'true'
     focusable = element.get('focusable', 'false').lower() == 'true'
@@ -48,7 +49,7 @@ def extract_ui_elements(element):
     focusable = (focusable or clickable) and enabled and bounds
     
     if focusable:
-        all_text = f"{text or content_desc}"
+        all_text = f"{text or content_desc or hint}"
         if not all_text:
             child_texts = get_children_texts(element)
             all_text = f"{' '.join(child_texts)}".strip()
@@ -63,9 +64,9 @@ def extract_ui_elements(element):
 
         elements.append(element_info)
 
-    elif text or content_desc:
-        display_text = text or content_desc
-        
+    elif text or content_desc or hint:
+        display_text = text or content_desc or hint
+
         element_info = {
             "text": display_text,
             "coordinates": {"x": bounds["x"], "y": bounds["y"]},
@@ -91,6 +92,9 @@ def mobile_dump_ui() -> str:
         xml_content = device.dump_hierarchy()
         root = ET.fromstring(xml_content)
         
+        # with open("last_ui_dump.xml", "w", encoding="utf-8") as f:
+        #     f.write(xml_content)
+
         ui_elements = extract_ui_elements(root)
         unique = {}
         for el in ui_elements:
