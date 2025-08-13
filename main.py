@@ -37,58 +37,56 @@ def extract_ui_elements(element):
     if resource_id.startswith('com.android.systemui'):
         return []
     
-    elements = []
-
-    class_name = element.get('class', '')
     text = element.get('text', '').strip()
     content_desc = element.get('content-desc', '').strip()
     hint = element.get('hint', '').strip()
     bounds = parse_bounds(element.get('bounds', ''))
-    clickable = element.get('clickable', 'false').lower() == 'true'
     focusable = element.get('focusable', 'false').lower() == 'true'
-    enabled = element.get('enabled', 'false').lower() == 'true'
     
-    focusable = (focusable or clickable) and enabled and bounds
+    has_text = bool(text or content_desc or hint)
     
-    if focusable:
-        all_text = f"{text or content_desc or hint}"
-        if not all_text:
-            child_texts = get_children_texts(element)
-            all_text = f"{' '.join(child_texts)}".strip()
-
-        element_info = {
-            "text": all_text,
-            "coordinates": {"x": bounds["x"], "y": bounds["y"]},
-            "class": class_name
-        }
-        if resource_id:
-            element_info["resource_id"] = resource_id
-
-        elements.append(element_info)
-
-    elif text or content_desc or hint:
-        display_text = text or content_desc or hint
-
-        element_info = {
-            "text": display_text,
-            "coordinates": {"x": bounds["x"], "y": bounds["y"]},
-            "class": class_name
-        }
-        if resource_id:
-            element_info["resource_id"] = resource_id
-
-        elements.append(element_info)
-
+    children = []
     for child in element:
-        elements.extend(extract_ui_elements(child))
-    return elements
+        children.extend(extract_ui_elements(child))
+
+    if not (focusable or has_text):
+        return children
+    
+    display_text = text or content_desc or hint
+    if focusable and not display_text:
+        child_texts = get_children_texts(element)
+        display_text = ' '.join(child_texts).strip()
+    
+    element_info = {
+        "text": display_text,
+        "class": element.get('class', ''),
+        "coordinates": {"x": bounds["x"], "y": bounds["y"]} if bounds else None
+    }
+    
+    if resource_id:
+        element_info["resource_id"] = resource_id
+    
+    if children:
+        filtered_children = []
+        for child in children:
+            child_text = child.get("text", "")
+            child_coords = child.get("coordinates")
+
+            if not (child_text == element_info["text"] and child_coords == element_info["coordinates"]):
+                filtered_children.append(child)
+
+        if filtered_children:
+            element_info["children"] = filtered_children
+    
+    return [element_info]
 
 
 @mcp.tool()
 def mobile_dump_ui() -> str:
-    """Get UI elements from Android screen as JSON with text and coordinates.
+    """Get UI elements from Android screen as JSON with hierarchical structure.
     
-    Returns a JSON array of UI elements with their text content and clickable coordinates.
+    Returns a JSON structure where elements contain their child elements, showing parent-child relationships.
+    Only includes focusable elements or elements with text/content_desc/hint attributes.
     """
     try:
         xml_content = device.dump_hierarchy()
@@ -98,13 +96,6 @@ def mobile_dump_ui() -> str:
         #     f.write(xml_content)
 
         ui_elements = extract_ui_elements(root)
-        unique = {}
-        for el in ui_elements:
-            key = (el["text"], tuple(el["coordinates"].items()))
-            if key not in unique:
-                unique[key] = el
-        ui_elements = list(unique.values())
-
         return json.dumps(ui_elements, ensure_ascii=False, indent=2)
 
     except Exception as e:
