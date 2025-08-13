@@ -4,6 +4,8 @@ from fastmcp.utilities.types import Image
 import xml.etree.ElementTree as ET
 import json
 import io
+import subprocess
+import re
 
 mcp = FastMCP("Android Mobile MCP Server")
 device = u2.connect()
@@ -178,6 +180,38 @@ def mobile_swipe(start_x: int, start_y: int, end_x: int, end_y: int, duration: f
     except Exception as e:
         return f"Error swiping: {str(e)}"
 
+
+def is_system_app(package):
+    exclude_patterns = [
+        r"^com\.android\.systemui",
+        r"^com\.android\.providers\.",
+        r"^com\.android\.internal\.",
+        r"^com\.android\.cellbroadcast",
+        r"^com\.android\.phone",
+        r"^com\.android\.bluetooth",
+        r"^com\.google\.android\.overlay",
+        r"^com\.google\.mainline",
+        r"^com\.google\.android\.ext",
+        r"\.auto_generated_rro_",
+        r"^android$",
+    ]
+    return any(re.search(p, package) for p in exclude_patterns)
+
+def is_launchable_app(package):
+    if is_system_app(package):
+        return False
+    
+    try:
+        output = subprocess.check_output(
+            ["adb", "shell", "cmd", "package", "resolve-activity", "--brief", package],
+            text=True
+        ).strip()
+        print(output)
+        return "/" in output
+
+    except subprocess.CalledProcessError:
+        return False
+
 @mcp.tool()
 def mobile_list_apps() -> str:
     """List all installed applications on the Android device.
@@ -186,13 +220,8 @@ def mobile_list_apps() -> str:
     """
     try:
         apps = device.app_list()
-        app_info = []
-        for app in apps:
-            app_info.append({
-                "package": app,
-                "name": device.app_info(app).get('label', app)
-            })
-        return json.dumps(app_info, ensure_ascii=False, indent=2)
+        launchable_apps = [pkg for pkg in apps if is_launchable_app(pkg)]
+        return json.dumps(launchable_apps, ensure_ascii=False, indent=2)
     except Exception as e:
         return f"Error listing apps: {str(e)}"
 
