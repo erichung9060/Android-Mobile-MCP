@@ -34,8 +34,6 @@ def get_children_texts(element):
 
 def extract_ui_elements(element):
     resource_id = element.get('resource-id', '')
-    if resource_id.startswith('com.android.systemui'):
-        return []
     
     text = element.get('text', '').strip()
     content_desc = element.get('content-desc', '').strip()
@@ -167,7 +165,7 @@ def mobile_swipe(start_x: int, start_y: int, end_x: int, end_y: int, duration: f
         duration: Duration of swipe in seconds (default: 0.5)
     """
     try:
-        device.swipe(start_x, start_y, end_x, end_y, duration)
+        device.swipe(start_x, start_y, end_x, end_y, duration / 2)
         return f"Successfully swiped from ({start_x}, {start_y}) to ({end_x}, {end_y})"
     except Exception as e:
         return f"Error swiping: {str(e)}"
