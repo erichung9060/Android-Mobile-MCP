@@ -212,7 +212,7 @@ def is_launchable_app(package):
             ["adb", "shell", "cmd", "package", "resolve-activity", "--brief", package],
             text=True
         ).strip()
-        print(output)
+
         return "/" in output
 
     except subprocess.CalledProcessError:
