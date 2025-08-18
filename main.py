@@ -10,6 +10,8 @@ import re
 mcp = FastMCP("Android Mobile MCP Server")
 device = u2.connect()
 
+ui_coords = set()
+
 def parse_bounds(bounds_str):
     if not bounds_str or bounds_str == '':
         return None
@@ -61,7 +63,10 @@ def extract_ui_elements(element):
         "package": element.get('package', ''),
         "coordinates": {"x": bounds["x"], "y": bounds["y"]} if bounds else None
     }
-    
+
+    global ui_coords
+    ui_coords.add((bounds["x"], bounds["y"]))
+
     if resource_id:
         element_info["resource_id"] = resource_id
     
@@ -87,12 +92,18 @@ def mobile_dump_ui() -> str:
     Returns a JSON structure where elements contain their child elements, showing parent-child relationships.
     Only includes focusable elements or elements with text/content_desc/hint attributes.
     """
+    return _mobile_dump_ui()
+
+def _mobile_dump_ui():
     try:
         xml_content = device.dump_hierarchy()
         root = ET.fromstring(xml_content)
         
         # with open("last_ui_dump.xml", "w", encoding="utf-8") as f:
         #     f.write(xml_content)
+
+        global current_ui_state
+        ui_coords.clear()
 
         ui_elements = extract_ui_elements(root)
         return json.dumps(ui_elements, ensure_ascii=False, indent=2)
@@ -109,6 +120,11 @@ def mobile_click(x: int, y: int) -> str:
         y: Y coordinate to click
     """
     try:
+        _mobile_dump_ui()
+        global ui_coords
+        if (x, y) not in ui_coords:
+            return "Invalid elements coordinates. Please use mobile_dump_ui to get the latest UI state first."
+        
         device.click(x, y)
         return f"Successfully clicked on coordinate ({x}, {y})"
     except Exception as e:
