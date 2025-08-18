@@ -106,7 +106,7 @@ def _mobile_dump_ui():
         ui_coords.clear()
 
         ui_elements = extract_ui_elements(root)
-        return json.dumps(ui_elements, ensure_ascii=False, indent=2)
+        return str(ui_elements)
 
     except Exception as e:
         return f"Error processing XML: {str(e)}"
