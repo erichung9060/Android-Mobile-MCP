@@ -180,8 +180,10 @@ def mobile_swipe(start_x: int, start_y: int, end_x: int, end_y: int, duration: f
         duration: Duration of swipe in seconds (default: 0.5)
     """
     try:
-        device.swipe(start_x, start_y, end_x, end_y, duration / 2)
-        return f"Successfully swiped from ({start_x}, {start_y}) to ({end_x}, {end_y})"
+        duration_ms = int(duration * 1000)
+        cmd = f"input swipe {start_x} {start_y} {end_x} {end_y} {duration_ms}"
+        device.shell(cmd)
+        return f"Successfully swiped from ({start_x}, {start_y}) to ({end_x}, {end_y}) in {duration}s"
     except Exception as e:
         return f"Error swiping: {str(e)}"
 
