@@ -84,7 +84,6 @@ def extract_ui_elements(element):
     
     return [element_info]
 
-
 @mcp.tool()
 def mobile_dump_ui() -> str:
     """Get UI elements from Android screen as JSON with hierarchical structure.
@@ -186,7 +185,6 @@ def mobile_swipe(start_x: int, start_y: int, end_x: int, end_y: int, duration: f
     except Exception as e:
         return f"Error swiping: {str(e)}"
 
-
 def is_system_app(package):
     exclude_patterns = [
         r"^com\.android\.systemui",
@@ -239,6 +237,10 @@ def mobile_launch_app(package_name: str) -> str:
         package_name: The package name of the app to launch (e.g., 'com.android.chrome')
     """
     try:
+        apps = device.app_list()
+        if package_name not in apps:
+            return f"App {package_name} is not in the list of installed apps. Please use mobile_list_apps to get the current app list."
+        
         device.app_start(package_name)
         return f"Successfully launched app: {package_name}"
     except Exception as e:
