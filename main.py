@@ -60,7 +60,6 @@ def extract_ui_elements(element):
     element_info = {
         "text": display_text,
         "class": element.get('class', ''),
-        "package": element.get('package', ''),
         "coordinates": {"x": bounds["x"], "y": bounds["y"]} if bounds else None
     }
 
