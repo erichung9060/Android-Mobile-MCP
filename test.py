@@ -12,7 +12,7 @@ from PIL import Image as PILImage
 mcp = FastMCP("Android Mobile MCP Server")
 
 class ADBDevice:
-    """ADB-based device controller to replace uiautomator2"""
+    """ADB-based device controller using native adb commands"""
     
     def __init__(self):
         self._adb_checked = False

@@ -2,7 +2,7 @@
 
 ## Description
 
-Android Mobile MCP is a server implementation that bridges the Model Context Protocol with Android device automation capabilities. It provides a comprehensive set of tools for interacting with Android devices, including UI element detection, touch interactions, text input, app management, and screenshot capture.
+Android Mobile MCP is a server implementation that bridges the Model Context Protocol with Android device automation capabilities using native ADB commands. It provides a comprehensive set of tools for interacting with Android devices, including UI element detection, touch interactions, text input, app management, and screenshot capture.
 
 ## Available Tools
 
@@ -29,5 +29,6 @@ uvx android-mobile-mcp
 ### Prerequisites
 
 1. Ensure your Android device has USB debugging enabled
-2. Install ADB (Android Debug Bridge) on your system
+2. Install ADB (Android Debug Bridge) on your system - **required** for all device communication
 3. Connect your Android device via USB or ensure it's accessible over the network
+4. Verify ADB connection with `adb devices` command
