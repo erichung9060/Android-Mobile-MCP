@@ -1,2 +1,2 @@
-uiautomator2
 fastmcp
+Pillow

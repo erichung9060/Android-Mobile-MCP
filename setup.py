@@ -18,8 +18,8 @@ setup(
     keywords=['android', "mobile", "mcp", "mobile-mcp", "android-mcp"],
     py_modules=['main'],
     install_requires=[
-        'uiautomator2',
         'fastmcp',
+        'Pillow',
     ],
     entry_points={
         'console_scripts': [
