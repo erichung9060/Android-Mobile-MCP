@@ -97,9 +97,6 @@ def _mobile_dump_ui():
         xml_content = device.dump_hierarchy()
         root = ET.fromstring(xml_content)
         
-        # with open("last_ui_dump.xml", "w", encoding="utf-8") as f:
-        #     f.write(xml_content)
-
         global current_ui_state
         ui_coords.clear()
 
