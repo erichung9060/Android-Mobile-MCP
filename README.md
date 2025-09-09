@@ -1,33 +1,66 @@
 # Android Mobile MCP
 
-## Description
+## Overview
 
-Android Mobile MCP is a server implementation that bridges the Model Context Protocol with Android device automation capabilities. It provides a comprehensive set of tools for interacting with Android devices, including UI element detection, touch interactions, text input, app management, and screenshot capture.
+Android Mobile MCP bridges the Model Context Protocol with Android device automation, enabling AI agents to interact with Android devices through UI manipulation, app management, and screen capture.
 
-## Available Tools
-
-### UI Interaction
-- **`mobile_dump_ui`** - Get UI elements from Android screen as JSON with text and coordinates
-- **`mobile_click`** - Click on a specific coordinate on the Android screen
-- **`mobile_type`** - Input text into the currently focused text field with optional submit
-- **`mobile_key_press`** - Press physical or virtual buttons (BACK, HOME, ENTER, VOLUME_UP, etc.)
-- **`mobile_swipe`** - Perform swipe gestures with customizable duration
-- **`mobile_take_screenshot`** - Capture screenshots of the current screen state
-
-### App Management
-- **`mobile_list_apps`** - List all installed applications with package names and labels
-- **`mobile_launch_app`** - Launch applications by package name
-
-## Installation
-
-Install using uvx:
-
-```bash
-uvx android-mobile-mcp
+## MCP Configuration
+```json
+{
+  "mcpServers": {
+    "android-mobile-mcp": {
+      "command": "uvx",
+      "args": ["android-mobile-mcp"]
+    }
+  }
+}
 ```
 
 ### Prerequisites
 
-1. Ensure your Android device has USB debugging enabled
-2. Install ADB (Android Debug Bridge) on your system
-3. Connect your Android device via USB or ensure it's accessible over the network
+1. Enable USB debugging on your Android device
+2. Install ADB (Android Debug Bridge)
+3. Connect device via USB or network
+
+## Tools Reference
+
+### Screen Analysis
+
+**`mobile_dump_ui`** - Extract UI elements as hierarchical JSON
+- Parses screen XML to identify focusable elements and text content
+- Calculates center coordinates for each interactive element
+- Returns structured parent-child element relationships
+
+**`mobile_take_screenshot`** - Capture current screen state
+- Returns PNG image data for visual analysis
+
+### Touch Interactions
+
+**`mobile_click`** - Click at specific coordinates
+- Validates coordinates against current UI state
+- Requires prior `mobile_dump_ui` call for coordinate verification
+- Prevents clicking on invalid or non-interactive areas
+
+**`mobile_swipe`** - Perform swipe gestures
+- Executes directional swipes between two coordinate points
+- Configurable duration for gesture speed control
+
+### Text Input
+
+**`mobile_type`** - Input text into focused fields
+- Sends text to currently active input field
+- Optional automatic submission with Enter key
+
+### Navigation
+
+**`mobile_key_press`** - Press system buttons
+- Supports hardware and virtual keys: BACK, HOME, RECENT, ENTER
+
+### App Management
+
+**`mobile_list_apps`** - List installed applications
+- Filters out system apps and non-launchable packages
+- Returns only user-accessible applications
+
+**`mobile_launch_app`** - Start applications by package name
+- Validates package existence before launch attempt
