@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "android-mobile-mcp"
-version = "0.0.0"
+dynamic = ["version"]
 description = "Android Mobile MCP"
 readme = "README.md"
 authors = [
