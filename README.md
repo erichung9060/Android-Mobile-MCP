@@ -1,7 +1,6 @@
 # Android Mobile MCP
 
 ## Overview
-
 Android Mobile MCP bridges the Model Context Protocol with Android device automation, enabling AI agents to interact with Android devices through UI manipulation, app management, and screen capture.
 
 ## MCP Configuration
@@ -17,10 +16,9 @@ Android Mobile MCP bridges the Model Context Protocol with Android device automa
 ```
 
 ### Prerequisites
-
-1. Enable USB debugging on your Android device
-2. Install ADB (Android Debug Bridge)
-3. Connect device via USB or network
+1. Connect Android device via USB or network
+2. Enable USB debugging on your Android device
+3. Install ADB (Android Debug Bridge)
 
 ## Tools Reference
 
