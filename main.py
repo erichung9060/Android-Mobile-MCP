@@ -8,7 +8,7 @@ import subprocess
 import re
 
 mcp = FastMCP("Android Mobile MCP Server")
-device = u2.connect()
+device = None
 
 ui_coords = set()
 
@@ -84,12 +84,28 @@ def extract_ui_elements(element):
     return [element_info]
 
 @mcp.tool()
+def mobile_init() -> str:
+    """Initialize the Android device connection.
+    
+    Must be called before using any other mobile tools.
+    """
+    global device
+    try:
+        device = u2.connect()
+        return "Device initialized successfully"
+    except Exception as e:
+        device = None
+        return f"Error initializing device: {str(e)}"
+
+@mcp.tool()
 def mobile_dump_ui() -> str:
     """Get UI elements from Android screen as JSON with hierarchical structure.
     
     Returns a JSON structure where elements contain their child elements, showing parent-child relationships.
     Only includes focusable elements or elements with text/content_desc/hint attributes.
     """
+    if device is None:
+        return "Error: Device not initialized. Please call mobile_init() first to establish connection with Android device."
     return _mobile_dump_ui()
 
 def _mobile_dump_ui():
@@ -114,6 +130,8 @@ def mobile_click(x: int, y: int) -> str:
         x: X coordinate to click
         y: Y coordinate to click
     """
+    if device is None:
+        return "Error: Device not initialized. Please call mobile_init() first to establish connection with Android device."
     try:
         _mobile_dump_ui()
         global ui_coords
@@ -133,6 +151,8 @@ def mobile_type(text: str, submit: bool = False) -> str:
         text: The text to input
         submit: Whether to submit text (press Enter key) after typing
     """
+    if device is None:
+        return "Error: Device not initialized. Please call mobile_init() first to establish connection with Android device."
     try:
         device.send_keys(text)
         if submit:
@@ -149,6 +169,8 @@ def mobile_key_press(button: str) -> str:
     Args:
         button: Button name (BACK, HOME, RECENT, ENTER)
     """
+    if device is None:
+        return "Error: Device not initialized. Please call mobile_init() first to establish connection with Android device."
     button_map = {
         "BACK": "back",
         "HOME": "home",
@@ -175,6 +197,8 @@ def mobile_swipe(start_x: int, start_y: int, end_x: int, end_y: int, duration: f
         end_y: Ending Y coordinate
         duration: Duration of swipe in seconds (default: 0.5)
     """
+    if device is None:
+        return "Error: Device not initialized. Please call mobile_init() first to establish connection with Android device."
     try:
         duration_ms = int(duration * 1000)
         cmd = f"input swipe {start_x} {start_y} {end_x} {end_y} {duration_ms}"
@@ -220,6 +244,8 @@ def mobile_list_apps() -> str:
     
     Returns a JSON array with package names and application labels.
     """
+    if device is None:
+        return "Error: Device not initialized. Please call mobile_init() first to establish connection with Android device."
     try:
         apps = device.app_list()
         launchable_apps = [pkg for pkg in apps if is_launchable_app(pkg)]
@@ -234,6 +260,8 @@ def mobile_launch_app(package_name: str) -> str:
     Args:
         package_name: The package name of the app to launch (e.g., 'com.android.chrome')
     """
+    if device is None:
+        return "Error: Device not initialized. Please call mobile_init() first to establish connection with Android device."
     try:
         apps = device.app_list()
         if package_name not in apps:
@@ -250,6 +278,8 @@ def mobile_take_screenshot() -> Image:
     
     Returns an image object that can be viewed by the LLM.
     """
+    if device is None:
+        return "Error: Device not initialized. Please call mobile_init() first to establish connection with Android device."
     try:
         screenshot = device.screenshot()
     
