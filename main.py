@@ -4,7 +4,6 @@ from fastmcp.utilities.types import Image
 import xml.etree.ElementTree as ET
 import json
 import io
-import subprocess
 import re
 
 mcp = FastMCP("Android Mobile MCP Server")
@@ -228,14 +227,10 @@ def is_launchable_app(package):
         return False
     
     try:
-        output = subprocess.check_output(
-            ["adb", "shell", "cmd", "package", "resolve-activity", "--brief", package],
-            text=True
-        ).strip()
-
+        response = device.shell(f"cmd package resolve-activity --brief {package}")
+        output = response.output
         return "/" in output
-
-    except subprocess.CalledProcessError:
+    except Exception:
         return False
 
 @mcp.tool()
